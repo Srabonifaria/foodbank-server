@@ -1,6 +1,7 @@
 const express = require('express')
 const bodyParser = require('body-parser');
 const cors = require('cors');
+const ObjectID = require('mongodb').ObjectID;
 const fs =require('fs-extra')
 const fileUpload = require('express-fileupload');
 const MongoClient = require('mongodb').MongoClient;
@@ -27,6 +28,8 @@ app.get('/', (req, res) => {
 client.connect(err => {
   const orderCollection = client.db("foodBank").collection("orders");
   const adminCollection = client.db("foodBank").collection("admins");
+  const serviceCollection = client.db("foodBank").collection("services");
+
   app.post('/addOrder', (req, res) => {
     const order = req.body;
     orderCollection.insertOne(order)
@@ -35,6 +38,30 @@ client.connect(err => {
      res.send(result.insertedCount > 0)
         })
 });
+
+app.get('/services', (req, res)=>{
+    serviceCollection.find()
+    .toArray((err, documents) =>{
+        res.send(documents)
+    })
+})
+
+app.post('/addService', (req, res) => {
+    const newService = req.body;
+    serviceCollection.insertOne(newService)
+        .then(result => {
+
+     res.send(result.insertedCount > 0)
+        })
+});
+
+
+app.delete('deleteService/:id',(req, res)=>{
+    const id = ObjectID(req.params.id)
+    console.log('delete',id);
+    serviceCollection.findOneAndDelete({_id:id})
+    .then(documents => res.send(!!documents.value))
+})
 
 // app.post('/ordersByDate', (req, res) => {
 //   const created = req.body;
